@@ -1,0 +1,134 @@
+<link rel="import" href="full-calendar-month-view-week.html">
+
+<dom-module id="full-calendar-month-view">
+  <template>
+    <style>
+      :host {
+        display: block;
+        @apply(--layout-fit);
+        @apply(--layout-vertical);
+      }
+    </style>
+
+    <template is="dom-repeat" items="[[_weekList]]">
+      <full-calendar-month-view-week days="[[item.days]]"></full-calendar-month-view-week>
+    </template>
+  </template>
+  <script>
+    Polymer({
+      is: 'full-calendar-month-view',
+
+      properties: {
+
+        /**
+         * Year to show
+         */
+        year: {
+          type: Number,
+          value: function() {
+            return moment().get('year');
+          }
+        },
+
+        /**
+         * Month to show
+         */
+        month: {
+          type: Number,
+          value: function() {
+            return moment().get('month');
+          }
+        },
+
+        /**
+         * First day of the week. Monday on default.
+         */
+        firstWeekDay: {
+          type: Number,
+          value: 1
+        }
+      },
+
+      observers: [
+        '_dateChanged(month, year, firstWeekDay)'
+      ],
+
+      _dateChanged: function(month, year) {
+        console.log(month, year);
+        this._fillList(month, year);
+      },
+
+      _fillList: function(month, year) {
+        var weeks = [];
+
+        moment.locale(moment.locale(), {
+          week : {
+              dow : this.firstWeekDay, // Set first day of the week.
+              doy : 4
+          }
+        });
+
+        var startDate = moment([year, month]);
+        var firstDay = moment(startDate).startOf('month');
+        var endDay = moment(startDate).endOf('month');
+
+        var firstVisibleDay = firstDay.startOf('week');
+        var lastVisibleDay = endDay.endOf('week');
+
+        var monthRange = moment.range(firstVisibleDay, lastVisibleDay);
+
+        monthRange.by('weeks', function(mW) {
+          var week = {
+            days: []
+          };
+
+          var weekStart = moment(mW).startOf('week');
+          var weekEnd = moment(mW).endOf('week');
+          var weekRange = moment.range(weekStart, weekEnd);
+
+          weekRange.by('days', function(mD) {
+            week.days.push({
+              label: mD.date(),
+              moment: mD
+            });
+          });
+
+          weeks.push(week);
+        });
+console.log(weeks);
+        this._weekList = weeks;
+      },
+
+      get_calendar(year, month){
+        var startDate = moment([year, month]);
+        var firstDay = moment(startDate).startOf('month');
+        var endDay = moment(startDate).endOf('month');
+        var monthRange = moment.range(firstDay, endDay);
+        var weeks = [];
+
+        monthRange.by('days', function(moment) {
+          console.log(moment.date());
+        });
+
+        calendar = [];
+        for (i = 0, len = weeks.length; i < len; i++) {
+          week = weeks[i];
+          if (i > 0 && week < weeks[i-1]){
+          	// We have switched to the next year
+          	firstWeekDay = moment([year, month]).add(1, "year").week(week).day(1);
+          	lastWeekDay = moment([year, month]).add(1, "year").week(week).day(7);
+          }
+          else{
+          	firstWeekDay = moment([year, month]).week(week).day(1);
+          	lastWeekDay = moment([year, month]).week(week).day(7);
+          }
+          weekRange = moment.range(firstWeekDay, lastWeekDay);
+          calendar.push(weekRange);
+        }
+
+        console.log(calendar);
+        return calendar;
+      }
+    });
+  </script>
+</dom-module>

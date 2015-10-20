@@ -1,0 +1,30 @@
+<dom-module id="full-calendar-month-view-day">
+  <template>
+    <style>
+      :host {
+        display: inline-block;
+        padding: 5px;
+        width: 14.28571%;
+      }
+    </style>
+
+    <div class="wrap">
+      <span>[[label]]</span>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'full-calendar-month-view-day',
+
+      properties: {
+
+        /**
+         * List of days to render
+         */
+        label: {
+          type: String
+        }
+      }
+    });
+  </script>
+</dom-module>

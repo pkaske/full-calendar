@@ -1,0 +1,34 @@
+<link rel="import" href="full-calendar-month-view-day.html">
+
+<dom-module id="full-calendar-month-view-week">
+  <template>
+    <style>
+      :host {
+        display: block;
+        @apply(--layout-flex);
+        @apply(--layout-horizontal);
+      }
+    </style>
+
+    <template is="dom-repeat" items=[[days]]>
+      <full-calendar-month-view-day
+        label="[[item.label]]">
+      </full-calendar-month-view-day>
+    </template>
+  </template>
+  <script>
+    Polymer({
+      is: 'full-calendar-month-view-week',
+
+      properties: {
+
+        /**
+         * List of days to render
+         */
+        days: {
+          type: Array
+        }
+      }
+    });
+  </script>
+</dom-module>
