@@ -22,10 +22,6 @@
         @apply(--layout-horizontal);
         @apply(--layout-center);
       }
-/*
-      :host(:hover) {
-        background-color: #3cb2cc !important;
-      }*/
     </style>
 
     <div class="wrap">
@@ -46,6 +42,16 @@
           type: String,
           value: '#1a95b0',
           observer: '_colorChanged'
+        },
+
+        len: {
+          type: Number,
+          value: 1
+        },
+
+        row: {
+          type: Number,
+          value: 0
         }
       },
 
@@ -54,8 +60,8 @@
       ],
 
       listeners: {
-        'mouseenter': '_onMouseEnter',
-        'mouseleave': '_onMouseLeave'
+        'mouseenter': '_mouseenter',
+        'mouseleave': '_mouseleave'
       },
 
       _colorChanged: function() {
@@ -64,14 +70,14 @@
         this._lightColor = null;
       },
 
-      _onMouseEnter: function() {
+      _mouseenter: function() {
         if (!this._lightColor) {
           this._lightColor = this.colorLuminance(this.color, 0.2);
         }
         this.style.backgroundColor = this._lightColor;
       },
 
-      _onMouseLeave: function() {
+      _mouseleave: function() {
         this._colorChanged();
       }
     });

@@ -13,7 +13,7 @@
         padding: 3px;
       }
 
-      .top-layer {
+      #topLayer {
         margin-top: 25px;
         @apply(--layout-fit);
       }
@@ -22,8 +22,7 @@
     <div class="bottom-layer">
       <span>[[label]]</span>
     </div>
-    <div class="top-layer">
-      <content select="full-calendar-month-view-item-part"></content>
+    <div id="topLayer">
     </div>
   </template>
   <script>
@@ -38,7 +37,14 @@
         label: {
           type: String
         }
-      }
+      },
+
+      addItemPart: function(itemPart) {
+        itemPart.style.top = (itemPart.row * 20) + '%';
+        itemPart.style.width = (100 * itemPart.len) + '%';
+
+        Polymer.dom(this.$.topLayer).appendChild(itemPart);
+      },
     });
   </script>
 </dom-module>

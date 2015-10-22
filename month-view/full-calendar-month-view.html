@@ -192,8 +192,6 @@
           eventItem.row = row;
           eventItem.event = ev;
           this.$.calendarArea.appendChild(eventItem);
-
-          console.log(this._matrix);
         }
       },
 
@@ -230,75 +228,32 @@
         return rowSpot;
       },
 
+      /**
+       * Claims spots in the matrix for a event.
+       * With this system the calendar knows how to arrange event items so they don't overlap.
+       */
       _claimRowForDate: function(coords, row, ev) {
         var week = coords.y;
         var day = coords.x;
 
         for (var l = 0; l < ev.duration.len; ++l) {
           if (this._matrix[week][day][row] !== undefined) {
-            this._matrix[week][day][row] = false;
+            this._matrix[week][day][row] = ev;
+
             day++;
-          }
-        }
-      },
 
-      _eventsAdded2: function(e, events) {
-        // Iterate through weeks.
-        for (var i = 0; i < this._weekList.length; i++) {
-          // The grid X coord.
-          var x = i;
+            // If we in the last of the week, continue in the next week.
+            if (day > 6) {
+              day = 0;
+              week++;
 
-          var week = this._weekList[i];
-
-          // Get events that occur in the week.
-          var weekEvents = this.getEventsForWeek(week, events);
-
-          // If there are events, generate items for them.
-          if (weekEvents.length > 0) {
-            var weekEl = this.$$('[week="' + week.id + '"]');
-
-            // Iterate through events found for the week.
-            for (var e = 0, el = weekEvents.length; e < el; ++e) {
-              var ev = weekEvents[e];
-              var eventItem = document.createElement('full-calendar-month-view-item');
-
-
-
-              // Find the day element in the grid.
-              var dayEl = Polymer.dom(weekEl).querySelector('[day="' + ev.duration.start.date() + '"]');
-              if (dayEl) {
-                // Calc how long the item is allowed to be so we don't paint outside the calendar.
-                eventItem.maxLength = this._countMaxDaysAfter(ev.duration.start.date(), week);
-              } else {
-                // If we can't find the day element, search for the element based on the end date.
-                // This happens for events that span over a week.
-                dayEl = Polymer.dom(weekEl).querySelector('[day="' + ev.duration.end.date() + '"]');
-                eventItem.maxLength = this._countMaxDaysAfter(ev.duration.end.date(), week);
+              // Break, if no weeks left in grid.
+              if (!this._matrix[week] === undefined) {
+                break;
               }
-
-
-
-              eventItem.event = weekEvents[e];
-              dayEl.appendChild(eventItem);
             }
-
           }
         }
-      },
-
-      _countMaxDaysAfter: function(day, week) {
-        var i = week.days.length;
-        var l = 0;
-        while (i) {
-          i--;
-          l++;
-          if (week.days[i].label === day) {
-            console.log(l);
-            return l;
-          }
-        }
-
-        return 1;
       }
     });
   </script>
