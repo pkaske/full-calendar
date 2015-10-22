@@ -2,14 +2,28 @@
   <template>
     <style>
       :host {
-        display: inline-block;
-        padding: 5px;
-        width: 14.28571%;
+        position: relative;
+        display: block;
+      }
+
+      .bottom-layer {
+        @apply(--layout-fit);
+        @apply(--full-calendar-month-view-day-cell-bg);
+        text-align: right;
+        padding: 3px;
+      }
+
+      .top-layer {
+        margin-top: 25px;
+        @apply(--layout-fit);
       }
     </style>
 
-    <div class="wrap">
+    <div class="bottom-layer">
       <span>[[label]]</span>
+    </div>
+    <div class="top-layer">
+      <content select="full-calendar-month-view-item-part"></content>
     </div>
   </template>
   <script>

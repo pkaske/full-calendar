@@ -1,5 +1,6 @@
 <link rel="import" href="../polymer/polymer.html">
 <link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="full-calendar-events.html">
 <link rel="import" href="full-calendar-imports.html">
 <link rel="import" href="month-view/full-calendar-month-view.html">
 
@@ -19,6 +20,8 @@
         /*@apply(--layout-fit);*/
       }
     </style>
+
+    <full-calendar-events id="eventStore"></full-calendar-events>
 
     <div class="main">
       <div class="month-view" hidden$="[[!_isEq(activeView, 'month')]]">
@@ -47,7 +50,22 @@
         activeView: {
           type: String,
           value: 'month'
-        },
+        }
+      },
+
+      attached: function() {
+        this.fire('full-calendar-attached');
+      },
+
+      addEvents: function(events) {
+        this.$.eventStore.add(events);
+      },
+
+      getView: function(type) {
+        switch (type) {
+          case 'month':
+            return this.$$('full-calendar-month-view');
+        }
       },
 
       /**

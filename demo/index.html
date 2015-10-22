@@ -13,13 +13,120 @@
   <style is="custom-style">
     full-calendar {
       width: 800px;
-      height: 800px;
+      height: 600px;
     }
   </style>
 </head>
 
 <body>
   <full-calendar></full-calendar>
+
+  <script>
+    var calendar = document.querySelector('full-calendar');
+    calendar.addEventListener('full-calendar-attached', function() {
+      calendar.addEvents([
+        {
+          uid: 'event1',
+          color: '#1a95b0',
+          summary: '20.10 17:30 - 21.10 21:59',
+          description: 'beim Edeka Milch kaufen!',
+          duration: {
+            start: '20151020T173000Z',
+            end: '20151021T215900Z'
+          },
+          location: 'Mühldorf'
+        },
+        {
+          uid: 'event1a',
+          color: '#73b01a',
+          summary: '20.10 19:30 - 20.10 21:59',
+          description: 'beim Edeka Milch kaufen!',
+          duration: {
+            start: '20151020T193000Z',
+            end: '20151020T215900Z'
+          },
+          location: 'Mühldorf'
+        },
+        {
+          uid: 'event1b',
+          color: '#b0551a',
+          summary: '20.10 10:30 - 20.10 11:59',
+          description: 'beim Edeka Milch kaufen!',
+          duration: {
+            start: '20151020T103000Z',
+            end: '20151020T115900Z'
+          },
+          location: 'Mühldorf'
+        },
+        {
+          uid: 'event2',
+          color: '#1ab07a',
+          summary: '19.10 21:30 - 21.10 21:59',
+          description: 'beim Edeka Milch kaufen!',
+          duration: {
+            start: '20151019T213000Z',
+            end: '20151021T215900Z',
+          },
+          location: 'Mühldorf'
+        },
+        {
+          uid: 'event3',
+          color: '#d09d1c',
+          summary: '11.11 15:00 - 12.11 16:00',
+          description: 'beim Edeka Milch kaufen!',
+          duration: {
+            start: '20151111T150000Z',
+            end: '20151112T160000Z',
+          },
+          location: 'Mühldorf'
+        },
+        {
+          uid: 'event4',
+          color: '#d037b7',
+          summary: '10.10 15:00 - 10.10 16:00',
+          description: 'beim Edeka Milch kaufen!',
+          duration: {
+            start: '20151010T150000Z',
+            end: '20151010T160000Z',
+          },
+          location: 'Mühldorf'
+        },
+        {
+          uid: 'event5',
+          color: '#1a56b0',
+          summary: '21.10 09:00 - 21.10 09:15',
+          description: 'beim Edeka Milch kaufen!',
+          duration: {
+            start: '20151021T090000Z',
+            end: '20151021T091500Z',
+          },
+          location: 'Mühldorf'
+        },
+        {
+          uid: 'event6',
+          color: '#5e97ed',
+          summary: '21.10 08:00 - 21.10 08:15',
+          description: 'beim Edeka Milch kaufen!',
+          duration: {
+            start: '20151021T080000Z',
+            end: '20151021T081500Z',
+          },
+          location: 'Mühldorf'
+        },
+        {
+          uid: 'event7',
+          color: '#5eeddc',
+          summary: '21.10 08:00 - 21.10 08:15',
+          description: 'beim Edeka Milch kaufen!',
+          duration: {
+            start: '20151021T080000Z',
+            end: '20151021T081500Z',
+          },
+          location: 'Mühldorf'
+        },
+      ]);
+    });
+  </script>
 </body>
 
 </html>

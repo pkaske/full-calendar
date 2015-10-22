@@ -1,0 +1,94 @@
+<link rel="import" href="full-calendar-month-view-item-part.html">
+
+<dom-module id="full-calendar-month-view-item">
+  <template>
+    <style>
+      :host {
+        display: block;
+      }
+    </style>
+  </template>
+  <script>
+    Polymer({
+      is: 'full-calendar-month-view-item',
+
+      properties: {
+        /**
+         * Holds the month view instance.
+         */
+        view: {
+          type: Object
+        },
+
+        event: {
+          type: Object
+        },
+
+        coords: {
+          type: Number,
+          value: 1
+        },
+
+        row: {
+          type: Number,
+          value: 1
+        },
+
+        /**
+         * Visial parts of the event item.
+         */
+        _parts: {
+          type: Array,
+          value: function() {
+            return [];
+          }
+        }
+      },
+
+      observers: [
+        '_eventChanged(event.*)'
+      ],
+
+      get startDay() {
+        return this.event.duration.start.date();
+      },
+
+      get startMonth() {
+        return this.event.duration.start.month();
+      },
+
+      get eventLength() {
+        return this.event.duration.len;
+      },
+
+      attached: function() {
+        this.update();
+      },
+
+      update: function() {
+        var dayEl = this.view.$$('[date="' + this.startDay + ':' + this.startMonth + '"]');
+
+        if (dayEl) {
+
+          var partItem;
+          if (this._parts.length) {
+            partItem = this._parts[0];
+          } else {
+            partItem = document.createElement('full-calendar-month-view-item-part');
+            this._parts.push(partItem);
+            Polymer.dom(dayEl).appendChild(partItem);
+          }
+
+          partItem.summary = this.event.summary;
+          partItem.color = this.event.color;
+          partItem.style.top = (this.row * 20) + '%';
+          partItem.style.width = (100 * this.event.duration.len) + '%';
+        }
+      },
+
+      _eventChanged: function(change) {
+        this.update();
+      },
+    });
+  </script>
+</dom-module>

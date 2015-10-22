@@ -1,0 +1,79 @@
+<link rel="import" href="../full-calendar-behavior.html">
+
+<dom-module id="full-calendar-month-view-item-part">
+  <template>
+    <style>
+      :host {
+        position: absolute;
+        z-index: 1;
+        display: block;
+        color: #000000;
+        font-size: 10px;
+        padding: 0 5px;
+        border-radius: 2px;
+        box-sizing: border-box;
+        height: 20%;
+        transition: background-color 0.2s, color 0.2s;
+        cursor: pointer;
+      }
+
+      .wrap {
+        height: 100%;
+        @apply(--layout-horizontal);
+        @apply(--layout-center);
+      }
+/*
+      :host(:hover) {
+        background-color: #3cb2cc !important;
+      }*/
+    </style>
+
+    <div class="wrap">
+      <div>{{summary}}</div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'full-calendar-month-view-item-part',
+
+      properties: {
+        summary: {
+          type: String,
+          value: ''
+        },
+
+        color: {
+          type: String,
+          value: '#1a95b0',
+          observer: '_colorChanged'
+        }
+      },
+
+      behaviors: [
+        Polymer.FullCalendarBehavior
+      ],
+
+      listeners: {
+        'mouseenter': '_onMouseEnter',
+        'mouseleave': '_onMouseLeave'
+      },
+
+      _colorChanged: function() {
+        this.style.backgroundColor = this.color;
+        this.style.color = this.contrastTextColor(this.color);
+        this._lightColor = null;
+      },
+
+      _onMouseEnter: function() {
+        if (!this._lightColor) {
+          this._lightColor = this.colorLuminance(this.color, 0.2);
+        }
+        this.style.backgroundColor = this._lightColor;
+      },
+
+      _onMouseLeave: function() {
+        this._colorChanged();
+      }
+    });
+  </script>
+</dom-module>
