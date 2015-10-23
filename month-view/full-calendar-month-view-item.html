@@ -1,13 +1,6 @@
 <link rel="import" href="full-calendar-month-view-item-part.html">
 
 <dom-module id="full-calendar-month-view-item">
-  <template>
-    <style>
-      :host {
-        display: block;
-      }
-    </style>
-  </template>
   <script>
     Polymer({
       is: 'full-calendar-month-view-item',
@@ -108,6 +101,17 @@
               break;
             }
           }
+        }
+      },
+
+      /**
+       * Removes the item and all it's parts from the calendar.
+       */
+      remove: function() {
+        var i = this._parts.length;
+        while (i) {
+          i--;
+          this._parts[i].parentNode.removeChild(this._parts[i]);
         }
       },
 

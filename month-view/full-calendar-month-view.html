@@ -68,12 +68,16 @@
       .header {
         @apply(--layout-horizontal);
         @apply(--layout-center);
+
+        @apply(--full-calendar-month-view-header);
       }
 
       .title {
+        padding-left: 10px;
       }
 
       .controls {
+        height: 50px;
         @apply(--layout-horizontal);
         @apply(--layout-center-center);
         @apply(--layout-flex);
@@ -102,7 +106,7 @@
     </style>
 
     <full-calendar-events id="eventStore"
-      on-full-calendar-events-added="_eventsAdded">
+      on-full-calendar-events-added="_paintEvents">
     </full-calendar-events>
 
     <div class="header">
@@ -134,7 +138,7 @@
     <div id="calendarArea">
       <template is="dom-repeat" items="[[_weekList]]" as="week" index-as="y">
         <div class="week-item" week$="[[week.id]]">
-          <template is="dom-repeat" items=[[week.days]] as="day" index-as="x">
+          <template is="dom-repeat" items=[[week.days]] as="day" index-as="x" on-dom-change="_weekPainted">
             <full-calendar-month-view-day
               class$="[[_calcClass(day)]]"
               coords$="[[_printCoords(x, y)]]"
@@ -179,6 +183,25 @@
         firstWeekDay: {
           type: Number,
           value: 1
+        },
+
+        /**
+         * List of currently visible full-calendar-month-view-item elements.
+         * User `visibleEvents[x].event` to access the underlying event.
+         */
+        visibleEvents: {
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+
+        /**
+         * Little helper that lets us know when all week where painted by dom-repeat.
+         */
+        _weeksPainted: {
+          type: Number,
+          value: 0
         }
       },
 
@@ -194,7 +217,23 @@
         this._fillList(month, year);
       },
 
+      /**
+       * Counts `this._weeksPainted` up till we know all weeks are ready.
+       * Then fill in the events.
+       */
+      _weekPainted: function() {
+        this._weeksPainted++;
+        // If all 6 weeks are painted, fill in the events.
+        if (this._weeksPainted === 6) {
+          this._weeksPainted = 0;
+          this._paintEvents();
+        }
+      },
+
       _nextMonth: function() {
+        // Clear out the calendar.
+        this._clearEvents();
+
         var m = this.month;
         m = m + 1;
 
@@ -205,9 +244,15 @@
         }
 
         this.month = m;
+
+        // Events are automatically filled in as soon as the calendar grid was painted.
+        // See this._weekPainted;
       },
 
       _prevMonth: function() {
+        // Clear out the calendar.
+        this._clearEvents();
+
         var m = this.month;
         m = m -1;
 
@@ -218,14 +263,27 @@
         }
 
         this.month = m;
+
+        // Events are automatically filled in as soon as the calendar grid was painted.
+        // See this._weekPainted;
       },
 
       _nextYear: function() {
+        // Clear out the calendar.
+        this._clearEvents();
         this.year++;
+
+        // Events are automatically filled in as soon as the calendar grid was painted.
+        // See this._weekPainted;
       },
 
       _prevYear: function() {
+        // Clear out the calendar.
+        this._clearEvents();
         this.year--;
+
+        // Events are automatically filled in as soon as the calendar grid was painted.
+        // See this._weekPainted;
       },
 
       _printMonth: function(month) {
@@ -282,8 +340,23 @@
         }
       },
 
-      _eventsAdded: function() {
+      /**
+       * Remove all events from the calendar.
+       */
+      _clearEvents: function() {
+        var i = this.visibleEvents.length;
+        while (i) {
+          i--;
+          this.visibleEvents[i].remove();
+          this.visibleEvents[i].parentNode.removeChild(this.visibleEvents[i]);
+        }
+        this.visibleEvents = [];
+      },
+
+      _paintEvents: function() {
+        // Reset position matrix.
         this._resetMatrix();
+
         var events = this.getEventsForMonth(this.month, this.year, this.$.eventStore.events);
 
         for (var e = 0, le = events.length; e < le; ++e) {
@@ -305,6 +378,7 @@
           eventItem.coords = coords;
           eventItem.row = row;
           eventItem.event = ev;
+          this.visibleEvents.push(eventItem);
           this.$.calendarArea.appendChild(eventItem);
         }
       },
