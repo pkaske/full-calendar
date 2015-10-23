@@ -15,23 +15,35 @@
     <style>
       :host {
         display: block;
-        position: relative;
+        @apply(--layout-vertical);
       }
 
       [hidden] {
-        display: none;
+        display: none !important;
+      }
+
+      .main {
+        @apply(--layout-flex);
+        position: relative;
       }
 
       .main > div {
-        /*@apply(--layout-fit);*/
+        @apply(--layout-fit);
+        @apply(--layout-vertical);
       }
     </style>
 
     <full-calendar-events id="eventStore"></full-calendar-events>
 
+    <div>
+      <content select="header"></content>
+    </div>
+
     <div class="main">
       <div class="month-view" hidden$="[[!_isEq(activeView, 'month')]]">
-        <full-calendar-month-view></full-calendar-month-view>
+        <full-calendar-month-view>
+          <content select="[month-view-title]"></content>
+        </full-calendar-month-view>
       </div>
       <div class="week-view" hidden$="[[!_isEq(activeView, 'week')]]">
         Week

@@ -1,3 +1,4 @@
+<link rel="import" href="../../iron-icon/iron-icon.html">
 <link rel="import" href="full-calendar-month-view-day.html">
 <link rel="import" href="full-calendar-month-view-item.html">
 <link rel="import" href="../full-calendar-behavior.html">
@@ -7,11 +8,14 @@
     <style>
       :host {
         display: block;
+        @apply(--layout-vertical);
+        @apply(--layout-flex);
       }
 
       #calendarArea {
         position: relative;
-        @apply(--layout-fit);
+        /*@apply(--layout-fit);*/
+        @apply(--layout-flex);
         @apply(--layout-vertical);
       }
 
@@ -60,11 +64,72 @@
       .non-active {
         background: #e9e9e9;
       }
+
+      .header {
+        @apply(--layout-horizontal);
+        @apply(--layout-center);
+      }
+
+      .title {
+      }
+
+      .controls {
+        @apply(--layout-horizontal);
+        @apply(--layout-center-center);
+        @apply(--layout-flex);
+      }
+
+      .controls .month,
+      .controls .year {
+        text-align: center;
+        width: 100px;
+      }
+
+      .controls iron-icon {
+        cursor: pointer;
+        padding: 0 5px;
+
+        @apply(--full-calendar-icon);
+      }
+
+      .controls iron-icon:hover {
+        @apply(--full-calendar-icon-hover);
+      }
+
+      .misc {
+        text-align: right;
+      }
     </style>
 
     <full-calendar-events id="eventStore"
       on-full-calendar-events-added="_eventsAdded">
     </full-calendar-events>
+
+    <div class="header">
+
+      <div class="title">
+        <content select="[month-view-title]"></content>
+      </div>
+
+      <div class="controls">
+        <iron-icon icon="chevron-left" on-tap="_prevMonth"></iron-icon>
+        <div class="month">
+          <span>[[_printMonth(month)]]</span>
+        </div>
+        <iron-icon icon="chevron-right" on-tap="_nextMonth"></iron-icon>
+
+        <iron-icon icon="chevron-left" on-tap="_prevYear"></iron-icon>
+        <div class="year">
+          <span>[[year]]</span>
+        </div>
+        <iron-icon icon="chevron-right" on-tap="_nextYear"></iron-icon>
+      </div>
+
+      <div class="misc">
+
+      </div>
+
+    </div>
 
     <div id="calendarArea">
       <template is="dom-repeat" items="[[_weekList]]" as="week" index-as="y">
@@ -127,6 +192,44 @@
 
       _dateChanged: function(month, year) {
         this._fillList(month, year);
+      },
+
+      _nextMonth: function() {
+        var m = this.month;
+        m = m + 1;
+
+        if (m == 12) {
+          this.year++;
+          this.month = 0;
+          return;
+        }
+
+        this.month = m;
+      },
+
+      _prevMonth: function() {
+        var m = this.month;
+        m = m -1;
+
+        if (m == -1) {
+          this.year--;
+          this.month = 11;
+          return;
+        }
+
+        this.month = m;
+      },
+
+      _nextYear: function() {
+        this.year++;
+      },
+
+      _prevYear: function() {
+        this.year--;
+      },
+
+      _printMonth: function(month) {
+        return moment.months()[month];
       },
 
       _fillList: function(month, year) {

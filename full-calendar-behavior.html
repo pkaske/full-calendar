@@ -92,6 +92,25 @@ Or see the LICENSE file that comes with this code.
           weeks.push(week);
         });
 
+        if (weeks.length == 5) {
+          var nextMonth = moment(endDay).add(1, 'week');
+          var nextMonthFirstWeek = moment.range(moment(nextMonth).startOf('week'), moment(nextMonth).endOf('week'));
+          var week = {
+            id: nextMonth.week(),
+            range: nextMonthFirstWeek,
+            days: []
+          };
+          nextMonthFirstWeek.by('days', function(mD) {
+            week.days.push({
+              label: mD.date(),
+              moment: mD
+            });
+          });
+
+          weeks.push(week);
+        }
+          console.log(weeks);
+
         return weeks;
       },
 
