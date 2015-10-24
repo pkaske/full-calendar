@@ -1,0 +1,160 @@
+<!--
+@license
+Copyright (c) 2015 Peter Kaske <p.kaske@gmail.com>. All rights reserved.
+This code may only be used under the MIT license found at http://opensource.org/licenses/MIT.
+Or see the LICENSE file that comes with this code.
+-->
+
+<script>
+  if (Polymer.FullCalendarBehavior) {
+    console.warn('FullCalendarBehavior is already implemented in Polymer!');
+  }
+
+  (function() {
+    /**
+    * Provides commen tasks for full calendar.
+    *
+    * @demo demo/index.html
+    * @polymerBehavior
+    */
+    Polymer.FullCalendarImpl = {
+
+      getEventsForMonth: function(month, year, events) {
+        var startDate = moment([year, month]);
+        var firstDay = moment(startDate).startOf('month');
+        var endDay = moment(startDate).endOf('month');
+        var monthRange = moment.range(firstDay, endDay);
+
+        var filteredEvents = [];
+        var le = events.length;
+        while (le) {
+          le--;
+          var ev = events[le];
+          if (ev.duration.overlaps(monthRange)) {
+            filteredEvents.push(ev);
+          }
+        }
+
+        return filteredEvents;
+      },
+
+      getEventsForWeek: function(week, events) {
+        var filteredEvents = [];
+        var le = events.length;
+        while (le) {
+          le--;
+          var ev = events[le];
+          if (ev.duration.overlaps(week.range)) {
+            filteredEvents.push(ev);
+          }
+        }
+
+        return filteredEvents;
+      },
+
+      getWeekList: function(month, year) {
+        var weeks = [];
+
+        moment.locale(moment.locale(), {
+          week : {
+              dow : this.firstWeekDay, // Set first day of the week.
+              doy : 4
+          }
+        });
+
+        var startDate = moment([year, month]);
+        var firstDay = moment(startDate).startOf('month');
+        var endDay = moment(startDate).endOf('month');
+
+        var firstVisibleDay = firstDay.startOf('week');
+        var lastVisibleDay = endDay.endOf('week');
+
+        var monthRange = moment.range(firstVisibleDay, lastVisibleDay);
+
+        monthRange.by('weeks', function(mW) {
+          var weekStart = moment(mW).startOf('week');
+          var weekEnd = moment(mW).endOf('week');
+          var weekRange = moment.range(weekStart, weekEnd);
+
+          var week = {
+            id: mW.week(),
+            range: weekRange,
+            days: []
+          };
+
+          weekRange.by('days', function(mD) {
+            week.days.push({
+              label: mD.date(),
+              moment: mD
+            });
+          });
+
+          weeks.push(week);
+        });
+
+        if (weeks.length == 5) {
+          var nextMonth = moment(endDay).add(1, 'week');
+          var nextMonthFirstWeek = moment.range(moment(nextMonth).startOf('week'), moment(nextMonth).endOf('week'));
+          var week = {
+            id: nextMonth.week(),
+            range: nextMonthFirstWeek,
+            days: []
+          };
+          nextMonthFirstWeek.by('days', function(mD) {
+            week.days.push({
+              label: mD.date(),
+              moment: mD
+            });
+          });
+
+          weeks.push(week);
+        }
+
+        return weeks;
+      },
+
+      colorLuminance: function(hex, lum) {
+      	// validate hex string
+      	hex = String(hex).replace(/[^0-9a-f]/gi, '');
+      	if (hex.length < 6) {
+      		hex = hex[0]+hex[0]+hex[1]+hex[1]+hex[2]+hex[2];
+      	}
+      	lum = lum || 0;
+
+      	// convert to decimal and change luminosity
+      	var rgb = "#", c, i;
+      	for (i = 0; i < 3; i++) {
+      		c = parseInt(hex.substr(i*2,2), 16);
+      		c = Math.round(Math.min(Math.max(0, c + (c * lum)), 255)).toString(16);
+      		rgb += ("00"+c).substr(c.length);
+      	}
+
+      	return rgb;
+      },
+
+      contrastTextColor: function(hex) {
+        var result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+        var red = parseInt(result[1], 16);
+        var green = parseInt(result[2], 16);
+        var blue = parseInt(result[3], 16);
+
+        var brightness;
+        brightness = (red * 299) + (green * 587) + (blue * 114);
+        brightness = brightness / 255000;
+
+        // values range from 0 to 1
+        // anything greater than 0.5 should be bright enough for dark text
+        if (brightness >= 0.6) {
+          return '#000000';
+        } else {
+          return '#ffffff';
+        }
+      }
+    };
+
+    /** @polymerBehavior */
+    Polymer.FullCalendarBehavior = [
+      Polymer.FullCalendarImpl
+    ];
+  })()
+</script>

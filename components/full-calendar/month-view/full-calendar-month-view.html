@@ -1,0 +1,481 @@
+<link rel="import" href="../../iron-icon/iron-icon.html">
+<link rel="import" href="full-calendar-month-view-day.html">
+<link rel="import" href="full-calendar-month-view-item.html">
+<link rel="import" href="../full-calendar-behavior.html">
+
+<dom-module id="full-calendar-month-view">
+  <template>
+    <style>
+      :host {
+        display: block;
+        @apply(--layout-vertical);
+        @apply(--layout-flex);
+      }
+
+      #calendarArea {
+        position: relative;
+        /*@apply(--layout-fit);*/
+        @apply(--layout-flex);
+        @apply(--layout-vertical);
+      }
+
+      .week-item {
+        display: block;
+        @apply(--layout-flex);
+        @apply(--layout-horizontal);
+      }
+
+      .week-info {
+        font-size: 10px;
+        color: #c4bfbf;
+        border: solid 1px #d5d5d5;
+        border-right-style: none;
+        border-top-style: none;
+        width: 30px;
+        @apply(--layout-vertical);
+        @apply(--layout-center-center);
+      }
+
+      .week-item:first-child .week-info{
+        border-top-style: solid;
+      }
+
+      .week-item > full-calendar-month-view-day {
+        @apply(--layout-flex);
+      }
+
+      full-calendar-month-view-day {
+        --full-calendar-month-view-day-cell-bg: {
+          border: solid 1px #d5d5d5;
+          border-top-style: none;
+          border-left-style: none;
+          color: #c4bfbf;
+        };
+      }
+
+      .week-item:first-child full-calendar-month-view-day {
+        --full-calendar-month-view-day-cell-bg: {
+          border: solid 1px #d5d5d5;
+          border-left-style: none;
+          color: #c4bfbf;
+        };
+      }
+
+      .week-item full-calendar-month-view-day:first-of-type {
+        --full-calendar-month-view-day-cell-bg: {
+          border: solid 1px #d5d5d5;
+          border-top-style: none;
+          color: #c4bfbf;
+        };
+      }
+
+      .week-item:first-child full-calendar-month-view-day:first-of-type {
+        --full-calendar-month-view-day-cell-bg: {
+          border: solid 1px #d5d5d5;
+          color: #c4bfbf;
+        };
+      }
+
+      .non-active {
+        background: #e9e9e9;
+      }
+
+      .header {
+        @apply(--layout-horizontal);
+        @apply(--layout-center);
+
+        @apply(--full-calendar-month-view-header);
+      }
+
+      .title {
+        padding-left: 10px;
+      }
+
+      .controls {
+        height: 50px;
+        @apply(--layout-horizontal);
+        @apply(--layout-center-center);
+        @apply(--layout-flex);
+      }
+
+      .controls .month,
+      .controls .year {
+        text-align: center;
+        width: 100px;
+      }
+
+      .controls iron-icon {
+        cursor: pointer;
+        padding: 0 5px;
+
+        @apply(--full-calendar-icon);
+      }
+
+      .controls iron-icon:hover {
+        @apply(--full-calendar-icon-hover);
+      }
+
+      .misc {
+        text-align: right;
+      }
+    </style>
+
+    <full-calendar-events id="eventStore"
+      on-full-calendar-events-added="_paintEvents">
+    </full-calendar-events>
+
+    <div class="header">
+
+      <div class="title">
+        <content select="[month-view-title]"></content>
+      </div>
+
+      <div class="controls">
+        <iron-icon icon="chevron-left" on-tap="_prevMonth"></iron-icon>
+        <div class="month">
+          <span>[[_printMonth(month)]]</span>
+        </div>
+        <iron-icon icon="chevron-right" on-tap="_nextMonth"></iron-icon>
+
+        <iron-icon icon="chevron-left" on-tap="_prevYear"></iron-icon>
+        <div class="year">
+          <span>[[year]]</span>
+        </div>
+        <iron-icon icon="chevron-right" on-tap="_nextYear"></iron-icon>
+      </div>
+
+      <div class="misc">
+
+      </div>
+
+    </div>
+
+    <div id="calendarArea">
+      <template is="dom-repeat" items="[[_weekList]]" as="week" index-as="y">
+        <div class="week-item" week$="[[week.id]]">
+          <div class="week-info">
+            <span>[[week.id]]</span>
+          </div>
+          <template is="dom-repeat" items=[[week.days]] as="day" index-as="x" on-dom-change="_weekPainted">
+            <full-calendar-month-view-day
+              class$="[[_calcClass(day)]]"
+              coords$="[[_printCoords(x, y)]]"
+              date$="[[_printDate(day)]]"
+              label="[[day.label]]"
+              view="[[_view]]">
+            </full-calendar-month-view-day>
+          </template>
+        </div>
+      </template>
+    </div>
+  </template>
+
+  <script>
+    Polymer({
+      is: 'full-calendar-month-view',
+
+      properties: {
+
+        /**
+         * Year to show
+         */
+        year: {
+          type: Number,
+          value: function() {
+            return moment().get('year');
+          }
+        },
+
+        /**
+         * Month to show
+         */
+        month: {
+          type: Number,
+          value: function() {
+            return moment().get('month');
+          }
+        },
+
+        /**
+         * First day of the week. Monday on default.
+         */
+        firstWeekDay: {
+          type: Number,
+          value: 1
+        },
+
+        /**
+         * List of currently visible full-calendar-month-view-item elements.
+         * User `visibleEvents[x].event` to access the underlying event.
+         */
+        visibleEvents: {
+          type: Array,
+          value: function() {
+            return [];
+          }
+        },
+
+        /**
+         * Strings for localisation.
+         */
+        i18n: {
+          type: Object,
+          value: {
+            more: 'more'
+          }
+        },
+
+        /**
+         * Little helper that lets us know when all week where painted by dom-repeat.
+         */
+        _weeksPainted: {
+          type: Number,
+          value: 0
+        }
+      },
+
+      behaviors: [
+        Polymer.FullCalendarBehavior
+      ],
+
+      observers: [
+        '_dateChanged(month, year, firstWeekDay)'
+      ],
+
+      ready: function() {
+        this._view = this;
+      },
+
+      _dateChanged: function(month, year) {
+        this._fillList(month, year);
+      },
+
+      /**
+       * Counts `this._weeksPainted` up till we know all weeks are ready.
+       * Then fill in the events.
+       */
+      _weekPainted: function() {
+        this._weeksPainted++;
+        // If all 6 weeks are painted, fill in the events.
+        if (this._weeksPainted === 6) {
+          this._weeksPainted = 0;
+          this._paintEvents();
+        }
+      },
+
+      _nextMonth: function() {
+        // Clear out the calendar.
+        this._clearEvents();
+
+        var m = this.month;
+        m = m + 1;
+
+        if (m == 12) {
+          this.year++;
+          this.month = 0;
+          return;
+        }
+
+        this.month = m;
+
+        // Events are automatically filled in as soon as the calendar grid was painted.
+        // See this._weekPainted;
+      },
+
+      _prevMonth: function() {
+        // Clear out the calendar.
+        this._clearEvents();
+
+        var m = this.month;
+        m = m -1;
+
+        if (m == -1) {
+          this.year--;
+          this.month = 11;
+          return;
+        }
+
+        this.month = m;
+
+        // Events are automatically filled in as soon as the calendar grid was painted.
+        // See this._weekPainted;
+      },
+
+      _nextYear: function() {
+        // Clear out the calendar.
+        this._clearEvents();
+        this.year++;
+
+        // Events are automatically filled in as soon as the calendar grid was painted.
+        // See this._weekPainted;
+      },
+
+      _prevYear: function() {
+        // Clear out the calendar.
+        this._clearEvents();
+        this.year--;
+
+        // Events are automatically filled in as soon as the calendar grid was painted.
+        // See this._weekPainted;
+      },
+
+      _printMonth: function(month) {
+        return moment.months()[month];
+      },
+
+      _fillList: function(month, year) {
+        this._weekList = this.getWeekList(month, year);
+      },
+
+      _printCoords: function(x, y) {
+        return x + ':' + y;
+      },
+
+      _printDate: function(day) {
+        return day.label + ':' + day.moment.get('month');
+      },
+
+      _calcClass: function(day) {
+        if (day.moment.get('month') != this.month) {
+          return 'non-active';
+        }
+      },
+
+      /**
+       * Generates a matrix for the calendar grid.
+       * True stands for a free row.
+       * [
+       * 	 week0: [
+       * 	 	 day0: [ row0: true, row1: true, row2: true, row3: true ],
+       * 	 	 day1: [ row0: true, row1: true, row2: true, row3: true ],
+       * 	 	 day2: [ row0: true, row1: true, row2: true, row3: true ],
+       * 	 	 day3: [ row0: true, row1: true, row2: true, row3: true ],
+       * 	 	 day4: [ row0: true, row1: true, row2: true, row3: true ],
+       * 	 	 day5: [ row0: true, row1: true, row2: true, row3: true ],
+       * 	 	 day6: [ row0: true, row1: true, row2: true, row3: true ]
+       * 	 ],
+       * 	 ...
+       * ]
+       */
+      _resetMatrix: function() {
+        this._matrix = [];
+        for (var i = 0; i < this._weekList.length; i++) {
+          var weekMatrix = [];
+          for (var d = 0, ld = this._weekList[i].days.length; d < ld; ++d) {
+            var rowMatrix = [];
+            weekMatrix.push(rowMatrix);
+          }
+          this._matrix.push(weekMatrix);
+        }
+      },
+
+      /**
+       * Remove all events from the calendar.
+       */
+      _clearEvents: function() {
+        var i = this.visibleEvents.length;
+        while (i) {
+          i--;
+          this.visibleEvents[i].parentNode.removeChild(this.visibleEvents[i]);
+        }
+        this.visibleEvents = [];
+      },
+
+      _paintEvents: function() {
+        // Reset position matrix.
+        this._resetMatrix();
+
+        var events = this.getEventsForMonth(this.month, this.year, this.$.eventStore.events);
+
+        for (var e = 0, le = events.length; e < le; ++e) {
+          var ev = events[e];
+          ev.duration.len = ev.duration.diff('days') + 1;
+
+          // Translate coords
+          var coords = this._getGridCoordsForDate(ev.duration.start.date(), ev.duration.start.month());
+
+          // Get free row to place event in grid.
+          var row = this._getFreeRowForDate(coords, ev);
+
+          // Set the event on the found row.
+          this._claimRowForDate(coords, row, ev);
+
+          // Create item for the event.
+          var eventItem = document.createElement('full-calendar-month-view-item');
+          eventItem.view = this;
+          eventItem.coords = coords;
+          eventItem.row = row;
+          eventItem.event = ev;
+          this.visibleEvents.push(eventItem);
+          this.$.calendarArea.appendChild(eventItem);
+        }
+      },
+
+      _getGridCoordsForDate: function(day, month) {
+        var dayEl = this.$$('[date="' + day + ':' + month + '"]');
+        var coords = dayEl.getAttribute('coords');
+        var parts = coords.split(':');
+        return {x: parseInt(parts[0], 10), y: parseInt(parts[1], 10)};
+      },
+
+      _getFreeRowForDate: function(coords, ev) {
+        var week = coords.y;
+        var day = coords.x;
+        var rowSpot = -1;
+
+        for (var l = 0; l < ev.duration.len; ++l) {
+          var rowMatrix = this._matrix[week][day];
+          var row = 0;
+          while (true) {
+            if (!rowMatrix[row] && row >= rowSpot) {
+              rowSpot = row;
+              break;
+            }
+            row++;
+          }
+
+          day++;
+
+          // If we in the last of the week, continue in the next week.
+          if (day > 6) {
+            day = 0;
+            week++;
+
+            // Break, if no weeks left in grid.
+            if (!this._matrix[week] === undefined) {
+              break;
+            }
+          }
+        }
+
+        return rowSpot;
+      },
+
+      /**
+       * Claims spots in the matrix for a event.
+       * With this system the calendar knows how to arrange event items so they don't overlap.
+       */
+      _claimRowForDate: function(coords, row, ev) {
+        var week = coords.y;
+        var day = coords.x;
+
+        for (var l = 0; l < ev.duration.len; ++l) {
+          this._matrix[week][day][row] = ev;
+
+          day++;
+
+          // If we in the last of the week, continue in the next week.
+          if (day > 6) {
+            day = 0;
+            week++;
+
+            // Break, if no weeks left in grid.
+            if (!this._matrix[week] === undefined) {
+              break;
+            }
+          }
+        }
+      }
+    });
+  </script>
+</dom-module>

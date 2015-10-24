@@ -1,0 +1,79 @@
+<dom-module id="full-calendar-events">
+  <script>
+    Polymer({
+      is: 'full-calendar-events',
+
+      properties: {
+        events: {
+          type: Array,
+          value: [],
+          readOnly: true
+        },
+
+        _shared: {
+          type: Object,
+          value: {
+            master: null,
+            slaves: []
+          }
+        }
+      },
+
+      ready: function() {
+        if (!this._shared.master) {
+          this._shared.master = this;
+        } else {
+          this._shared.slaves.push(this);
+          this.events = this._shared.master.events;
+        }
+      },
+
+      add: function(events) {
+        if (!Array.isArray(events)) {
+          events = [events];
+        }
+
+        this._prepEvents(events);
+
+        var i = events.length;
+        while (i) {
+          i--;
+          this.push('events', events[i]);
+        }
+
+        this._fire('full-calendar-events-added', events);
+      },
+
+      /**
+       * Prepare event data to make it easier to work with.
+       * Also sort them by starting date.
+       */
+      _prepEvents: function(events) {
+        if (!events) {
+          return;
+        }
+
+        var i = events.length;
+        while (i) {
+          i--;
+          var ev = events[i];
+          ev.duration = moment.range(moment(ev.duration.start ,'YYYYMMDDTHHmmssZ'), moment(ev.duration.end ,'YYYYMMDDTHHmmssZ'));
+        }
+
+        // Sort events ASC by starting date.
+        events.sort(function (ev1, ev2) {
+          return ev1.duration.start > ev2.duration.start ? 1 : ev1.duration.start < ev2.duration.start ? -1 : 0;
+        });
+      },
+
+      _fire: function(eventName, data) {
+        this._shared.master.fire(eventName, data);
+        var s = this._shared.slaves.length;
+        while (s) {
+          s--;
+          this._shared.slaves[s].fire(eventName, data);
+        }
+      }
+    });
+  </script>
+</dom-module>

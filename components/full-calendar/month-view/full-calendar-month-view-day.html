@@ -1,0 +1,142 @@
+<link rel="import" href="../../pop-over/pop-over.html">
+
+<dom-module id="full-calendar-month-view-day">
+  <template>
+    <style>
+      :host {
+        position: relative;
+        display: block;
+      }
+
+      .bottom-layer {
+        text-align: right;
+        padding: 3px;
+        @apply(--layout-fit);
+        @apply(--full-calendar-month-view-day-cell-bg);
+      }
+
+      #topLayer {
+        margin-top: 25px;
+        @apply(--layout-fit);
+      }
+
+      .more {
+        position: absolute;
+        bottom: 0px;
+        width: 100%;
+        text-align: center;
+        font-size: 10px;
+        padding: 5px 0;
+        color: #c4bfbf;
+
+        @apply(--full-calendar-link);
+        @apply(--full-calendar-month-view-more-link);
+      }
+
+      .more [toggle]:hover {
+        @apply(--full-calendar-link-hover);
+      }
+
+      #hiddenEventList {
+        @apply(--layout-vertical);
+      }
+
+      #hiddenEventList > full-calendar-month-view-item-part {
+        position: static;
+        height: 25px;
+      }
+
+      [hidden] {
+        display: hidden !important;
+      }
+
+      pop-over {
+        display: block;
+
+        --pop-over-content: {
+          left: 0%;
+          background: #e3e3e3;
+        };
+
+        --pop-over-icon: {
+          fill: #e3e3e3;
+        };
+      }
+
+      pop-over [content] {
+        padding: 10px;
+        z-index: 1;
+        max-height: 200px;
+        overflow-y: auto;
+      }
+    </style>
+
+    <div class="bottom-layer">
+      <span>[[label]]</span>
+    </div>
+    <div id="topLayer">
+      <div class="more" hidden$="[[!_hiddenEventsCount]]">
+        <pop-over top-arrow="full-calendar:arrow-up">
+          <div toggle>
+            <span>[[_hiddenEventsCount]]</span> <span>[[view.i18n.more]]</span>
+          </div>
+          <div content id="hiddenEventList"></div>
+        </pop-over>
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'full-calendar-month-view-day',
+
+      properties: {
+
+        /**
+         * List of days to render
+         */
+        label: {
+          type: String
+        },
+
+        /**
+         * The parent month view.
+         */
+        view: {
+          type: Object
+        },
+
+        /**
+         * Current date the day is showing.
+         */
+        date: {
+          type: String,
+          value: 0,
+          observer: '_dateChanged'
+        },
+
+        hiddenEvents: {
+          type: Array,
+          value: function() {
+            return [];
+          }
+        }
+      },
+
+      addItemPart: function(itemPart) {
+        if (itemPart.row < 4) {
+          itemPart.style.top = (itemPart.row * 20) + '%';
+          itemPart.style.width = (100 * itemPart.len) + '%';
+
+          Polymer.dom(this.$.topLayer).appendChild(itemPart);
+        } else {
+          Polymer.dom(this.$.hiddenEventList).appendChild(itemPart);
+          this._hiddenEventsCount = this.$.hiddenEventList.childNodes.length;
+        }
+      },
+
+      _dateChanged: function() {
+        this._hiddenEventsCount = 0;
+      },
+    });
+  </script>
+</dom-module>

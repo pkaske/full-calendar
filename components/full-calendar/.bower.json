@@ -1,0 +1,40 @@
+{
+  "name": "full-calendar",
+  "description": "Feature ritch calendar. Created with polymer.",
+  "license": "MIT",
+  "main": "full-calendar.html",
+  "keywords": [
+    "polymer",
+    "web-components",
+    "calendar"
+  ],
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components"
+  ],
+  "dependencies": {
+    "polymer": "Polymer/polymer#^1.0.0",
+    "iron-flex-layout": "PolymerElements/iron-flex-layout#^1.0.0",
+    "moment": "~2.10.6",
+    "moment-timezone": "~0.4.1",
+    "moment-range": "~2.0.3",
+    "iron-icon": "PolymerElements/iron-icon#^1.0.0",
+    "pop-over": "pkaske/pop-over#^1.0.0"
+  },
+  "devDependencies": {
+    "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",
+    "iron-icons": "PolymerElements/iron-icons#~1.0.4"
+  },
+  "homepage": "https://github.com/pkaske/full-calendar",
+  "_release": "8073449ec0",
+  "_resolution": {
+    "type": "branch",
+    "branch": "master",
+    "commit": "8073449ec02467563942ec1c24f77bf1104b50be"
+  },
+  "_source": "git://github.com/pkaske/full-calendar.git",
+  "_target": "master",
+  "_originalSource": "pkaske/full-calendar",
+  "_direct": true
+}

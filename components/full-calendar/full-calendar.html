@@ -1,0 +1,95 @@
+<link rel="import" href="../polymer/polymer.html">
+<link rel="import" href="../iron-flex-layout/iron-flex-layout.html">
+<link rel="import" href="full-calendar-events.html">
+<link rel="import" href="full-calendar-imports.html">
+<link rel="import" href="month-view/full-calendar-month-view.html">
+
+<!--
+@group GUI Elements
+@element full-calendar
+@demo demo/index.html
+@homepage http://pkaske.github.io/full-calendar
+-->
+<dom-module id="full-calendar">
+  <template>
+    <style>
+      :host {
+        display: block;
+        @apply(--layout-vertical);
+      }
+
+      [hidden] {
+        display: none !important;
+      }
+
+      .main {
+        @apply(--layout-flex);
+        position: relative;
+      }
+
+      .main > div {
+        @apply(--layout-fit);
+        @apply(--layout-vertical);
+      }
+    </style>
+
+    <full-calendar-events id="eventStore"></full-calendar-events>
+
+    <div>
+      <content select="header"></content>
+    </div>
+
+    <div class="main">
+      <div class="month-view" hidden$="[[!_isEq(activeView, 'month')]]">
+        <content select="full-calendar-month-view"></content>
+      </div>
+      <div class="week-view" hidden$="[[!_isEq(activeView, 'week')]]">
+        Week
+      </div>
+      <div class="day-view" hidden$="[[!_isEq(activeView, 'day')]]">
+        Day
+      </div>
+      <div class="list-view" hidden$="[[!_isEq(activeView, 'list')]]">
+        List
+      </div>
+    </div>
+  </template>
+  <script>
+    Polymer({
+      is: 'full-calendar',
+
+      properties: {
+
+        /**
+         * Set/get the active calendar view
+         */
+        activeView: {
+          type: String,
+          value: 'month'
+        }
+      },
+
+      attached: function() {
+        this.fire('full-calendar-attached');
+      },
+
+      addEvents: function(events) {
+        this.$.eventStore.add(events);
+      },
+
+      getView: function(type) {
+        switch (type) {
+          case 'month':
+            return this.$$('full-calendar-month-view');
+        }
+      },
+
+      /**
+       * Helper function to use for simple `is equal` tests.
+       */
+      _isEq: function(subject, test) {
+        return subject === test;
+      },
+    });
+  </script>
+</dom-module>
