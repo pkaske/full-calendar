@@ -9,6 +9,7 @@
   </script>
   <script src="../../webcomponentsjs/webcomponents-lite.min.js"></script>
   <link rel="import" href="../../iron-icons/iron-icons.html">
+  <link rel="import" href="../../iron-iconset-svg/iron-iconset-svg.html">
   <link rel="import" href="../full-calendar.html">
 
   <style is="custom-style">
@@ -36,6 +37,15 @@
         color: #fff;
       };
 
+      --full-calendar-month-view-day-cell-bg: { };
+
+      --full-calendar-link: { };
+      --full-calendar-link-hover: {
+        color: #f43865;
+      };
+
+      --full-calendar-month-view-more-link: { };
+
       --full-calendar-icon: {
         transition: fill 0.2s;
         fill: #ffffff;
@@ -49,12 +59,30 @@
 </head>
 
 <body>
+  <iron-iconset-svg name="full-calendar" size="24">
+    <svg>
+      <defs>
+        <g id="arrow-up">
+          <path d="M7,15L12,10L17,15H7Z" />
+        </g>
+      </defs>
+    </svg>
+  </iron-iconset-svg>
+
   <full-calendar>
     <header>Demo Of Full Calendar</header>
-    <div month-view-title>Month View</div>
+    <full-calendar-month-view>
+      <div month-view-title>Month View</div>
+    </full-calendar-month-view>
   </full-calendar>
 
   <script>
+    var localisation = {
+      more: 'more'
+    };
+
+    document.querySelector('full-calendar-month-view').i18n = localisation;
+
     var calendar = document.querySelector('full-calendar');
     calendar.addEventListener('full-calendar-attached', function() {
       calendar.addEvents([
@@ -127,11 +155,11 @@
         {
           uid: 'event5',
           color: '#1a56b0',
-          summary: '21.10 09:00 - 21.10 09:15',
+          summary: '21.10 09:00 - 22.10 09:15',
           description: 'beim Edeka Milch kaufen!',
           duration: {
             start: '20151021T090000Z',
-            end: '20151021T091500Z',
+            end: '20151022T091500Z',
           },
           location: 'Mühldorf'
         },

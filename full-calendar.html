@@ -41,9 +41,7 @@
 
     <div class="main">
       <div class="month-view" hidden$="[[!_isEq(activeView, 'month')]]">
-        <full-calendar-month-view>
-          <content select="[month-view-title]"></content>
-        </full-calendar-month-view>
+        <content select="full-calendar-month-view"></content>
       </div>
       <div class="week-view" hidden$="[[!_isEq(activeView, 'week')]]">
         Week

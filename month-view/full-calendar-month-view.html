@@ -25,6 +25,21 @@
         @apply(--layout-horizontal);
       }
 
+      .week-info {
+        font-size: 10px;
+        color: #c4bfbf;
+        border: solid 1px #d5d5d5;
+        border-right-style: none;
+        border-top-style: none;
+        width: 30px;
+        @apply(--layout-vertical);
+        @apply(--layout-center-center);
+      }
+
+      .week-item:first-child .week-info{
+        border-top-style: solid;
+      }
+
       .week-item > full-calendar-month-view-day {
         @apply(--layout-flex);
       }
@@ -34,7 +49,7 @@
           border: solid 1px #d5d5d5;
           border-top-style: none;
           border-left-style: none;
-          color: #d5d5d5;
+          color: #c4bfbf;
         };
       }
 
@@ -42,22 +57,22 @@
         --full-calendar-month-view-day-cell-bg: {
           border: solid 1px #d5d5d5;
           border-left-style: none;
-          color: #d5d5d5;
+          color: #c4bfbf;
         };
       }
 
-      .week-item full-calendar-month-view-day:first-child {
+      .week-item full-calendar-month-view-day:first-of-type {
         --full-calendar-month-view-day-cell-bg: {
           border: solid 1px #d5d5d5;
           border-top-style: none;
-          color: #d5d5d5;
+          color: #c4bfbf;
         };
       }
 
-      .week-item:first-child full-calendar-month-view-day:first-child {
+      .week-item:first-child full-calendar-month-view-day:first-of-type {
         --full-calendar-month-view-day-cell-bg: {
           border: solid 1px #d5d5d5;
-          color: #d5d5d5;
+          color: #c4bfbf;
         };
       }
 
@@ -138,12 +153,16 @@
     <div id="calendarArea">
       <template is="dom-repeat" items="[[_weekList]]" as="week" index-as="y">
         <div class="week-item" week$="[[week.id]]">
+          <div class="week-info">
+            <span>[[week.id]]</span>
+          </div>
           <template is="dom-repeat" items=[[week.days]] as="day" index-as="x" on-dom-change="_weekPainted">
             <full-calendar-month-view-day
               class$="[[_calcClass(day)]]"
               coords$="[[_printCoords(x, y)]]"
               date$="[[_printDate(day)]]"
-              label="[[day.label]]">
+              label="[[day.label]]"
+              view="[[_view]]">
             </full-calendar-month-view-day>
           </template>
         </div>
@@ -197,6 +216,16 @@
         },
 
         /**
+         * Strings for localisation.
+         */
+        i18n: {
+          type: Object,
+          value: {
+            more: 'more'
+          }
+        },
+
+        /**
          * Little helper that lets us know when all week where painted by dom-repeat.
          */
         _weeksPainted: {
@@ -212,6 +241,10 @@
       observers: [
         '_dateChanged(month, year, firstWeekDay)'
       ],
+
+      ready: function() {
+        this._view = this;
+      },
 
       _dateChanged: function(month, year) {
         this._fillList(month, year);
@@ -325,15 +358,11 @@
        * ]
        */
       _resetMatrix: function() {
-        this._rows = 4;
         this._matrix = [];
         for (var i = 0; i < this._weekList.length; i++) {
           var weekMatrix = [];
           for (var d = 0, ld = this._weekList[i].days.length; d < ld; ++d) {
             var rowMatrix = [];
-            for (var r = 0; r < this._rows; ++r) {
-              rowMatrix.push(true);
-            }
             weekMatrix.push(rowMatrix);
           }
           this._matrix.push(weekMatrix);
@@ -396,22 +425,29 @@
         var rowSpot = -1;
 
         for (var l = 0; l < ev.duration.len; ++l) {
-          if (!this._matrix[week][day]) break;
-
-          // Iterate through rows of day to find the first free row.
-          for (var row = 0; row < this._matrix[week][day].length; row++) {
-            if (this._matrix[week][day][row] === true && row >= rowSpot) {
+          var rowMatrix = this._matrix[week][day];
+          var row = 0;
+          while (true) {
+            if (!rowMatrix[row] && row >= rowSpot) {
               rowSpot = row;
               break;
             }
+            row++;
           }
 
           day++;
-        }
 
-        // if (ev.uid === 'event7') {
-          // console.log(rowSpot);
-        // }
+          // If we in the last of the week, continue in the next week.
+          if (day > 6) {
+            day = 0;
+            week++;
+
+            // Break, if no weeks left in grid.
+            if (!this._matrix[week] === undefined) {
+              break;
+            }
+          }
+        }
 
         return rowSpot;
       },
@@ -425,22 +461,24 @@
         var day = coords.x;
 
         for (var l = 0; l < ev.duration.len; ++l) {
-          if (this._matrix[week][day][row] !== undefined) {
-            this._matrix[week][day][row] = ev;
+          this._matrix[week][day][row] = ev;
 
-            day++;
+          day++;
 
-            // If we in the last of the week, continue in the next week.
-            if (day > 6) {
-              day = 0;
-              week++;
+          // If we in the last of the week, continue in the next week.
+          if (day > 6) {
+            day = 0;
+            week++;
 
-              // Break, if no weeks left in grid.
-              if (!this._matrix[week] === undefined) {
-                break;
-              }
+            // Break, if no weeks left in grid.
+            if (!this._matrix[week] === undefined) {
+              break;
             }
           }
+        }
+
+        if (ev.uid === 'event5' || ev.uid === 'event6') {
+          console.log(ev.uid, this._matrix);
         }
       }
     });

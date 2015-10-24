@@ -1,3 +1,5 @@
+<link rel="import" href="../../pop-over/pop-over.html">
+
 <dom-module id="full-calendar-month-view-day">
   <template>
     <style>
@@ -7,15 +9,65 @@
       }
 
       .bottom-layer {
-        @apply(--layout-fit);
-        @apply(--full-calendar-month-view-day-cell-bg);
         text-align: right;
         padding: 3px;
+        @apply(--layout-fit);
+        @apply(--full-calendar-month-view-day-cell-bg);
       }
 
       #topLayer {
         margin-top: 25px;
         @apply(--layout-fit);
+      }
+
+      .more {
+        position: absolute;
+        bottom: 0px;
+        width: 100%;
+        text-align: center;
+        font-size: 10px;
+        padding: 5px 0;
+        color: #c4bfbf;
+
+        @apply(--full-calendar-link);
+        @apply(--full-calendar-month-view-more-link);
+      }
+
+      .more [toggle]:hover {
+        @apply(--full-calendar-link-hover);
+      }
+
+      #hiddenEventList {
+        @apply(--layout-vertical);
+      }
+
+      #hiddenEventList > full-calendar-month-view-item-part {
+        position: static;
+        height: 25px;
+      }
+
+      [hidden] {
+        display: hidden !important;
+      }
+
+      pop-over {
+        display: block;
+
+        --pop-over-content: {
+          left: 0%;
+          background: #e3e3e3;
+        };
+
+        --pop-over-icon: {
+          fill: #e3e3e3;
+        };
+      }
+
+      pop-over [content] {
+        padding: 10px;
+        z-index: 1;
+        max-height: 200px;
+        overflow-y: auto;
       }
     </style>
 
@@ -23,6 +75,14 @@
       <span>[[label]]</span>
     </div>
     <div id="topLayer">
+      <div class="more" hidden$="[[!hiddenEvents.length]]">
+        <pop-over top-arrow="full-calendar:arrow-up">
+          <div toggle>
+            <span>[[hiddenEvents.length]]</span> <span>[[view.i18n.more]]</span>
+          </div>
+          <div content id="hiddenEventList"></div>
+        </pop-over>
+      </div>
     </div>
   </template>
   <script>
@@ -36,14 +96,33 @@
          */
         label: {
           type: String
+        },
+
+        /**
+         * The parent month view.
+         */
+        view: {
+          type: Object
+        },
+
+        hiddenEvents: {
+          type: Array,
+          value: function() {
+            return [];
+          }
         }
       },
 
       addItemPart: function(itemPart) {
-        itemPart.style.top = (itemPart.row * 20) + '%';
-        itemPart.style.width = (100 * itemPart.len) + '%';
+        if (itemPart.row < 4) {
+          itemPart.style.top = (itemPart.row * 20) + '%';
+          itemPart.style.width = (100 * itemPart.len) + '%';
 
-        Polymer.dom(this.$.topLayer).appendChild(itemPart);
+          Polymer.dom(this.$.topLayer).appendChild(itemPart);
+        } else {
+          this.push('hiddenEvents', itemPart);
+          Polymer.dom(this.$.hiddenEventList).appendChild(itemPart);
+        }
       },
     });
   </script>
