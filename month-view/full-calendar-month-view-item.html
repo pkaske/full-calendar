@@ -60,6 +60,17 @@
         return moment.range(firstDay, lastDay);
       },
 
+      /**
+       * Remove all parts from the calendar.
+       */
+      detached: function() {
+        var i = this._parts.length;
+        while (i) {
+          i--;
+          this._parts[i].parentNode.removeChild(this._parts[i]);
+        }
+      },
+
       update: function() {
         // Generate the visual item(s).
         // If the events goes over multiple weeks we split it up into multiple visual items.
@@ -101,17 +112,6 @@
               break;
             }
           }
-        }
-      },
-
-      /**
-       * Removes the item and all it's parts from the calendar.
-       */
-      remove: function() {
-        var i = this._parts.length;
-        while (i) {
-          i--;
-          this._parts[i].parentNode.removeChild(this._parts[i]);
         }
       },
 

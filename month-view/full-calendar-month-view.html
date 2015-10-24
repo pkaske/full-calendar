@@ -376,7 +376,6 @@
         var i = this.visibleEvents.length;
         while (i) {
           i--;
-          this.visibleEvents[i].remove();
           this.visibleEvents[i].parentNode.removeChild(this.visibleEvents[i]);
         }
         this.visibleEvents = [];
@@ -475,10 +474,6 @@
               break;
             }
           }
-        }
-
-        if (ev.uid === 'event5' || ev.uid === 'event6') {
-          console.log(ev.uid, this._matrix);
         }
       }
     });

@@ -75,10 +75,10 @@
       <span>[[label]]</span>
     </div>
     <div id="topLayer">
-      <div class="more" hidden$="[[!hiddenEvents.length]]">
+      <div class="more" hidden$="[[!_hiddenEventsCount]]">
         <pop-over top-arrow="full-calendar:arrow-up">
           <div toggle>
-            <span>[[hiddenEvents.length]]</span> <span>[[view.i18n.more]]</span>
+            <span>[[_hiddenEventsCount]]</span> <span>[[view.i18n.more]]</span>
           </div>
           <div content id="hiddenEventList"></div>
         </pop-over>
@@ -105,6 +105,15 @@
           type: Object
         },
 
+        /**
+         * Current date the day is showing.
+         */
+        date: {
+          type: String,
+          value: 0,
+          observer: '_dateChanged'
+        },
+
         hiddenEvents: {
           type: Array,
           value: function() {
@@ -120,9 +129,13 @@
 
           Polymer.dom(this.$.topLayer).appendChild(itemPart);
         } else {
-          this.push('hiddenEvents', itemPart);
           Polymer.dom(this.$.hiddenEventList).appendChild(itemPart);
+          this._hiddenEventsCount = this.$.hiddenEventList.childNodes.length;
         }
+      },
+
+      _dateChanged: function() {
+        this._hiddenEventsCount = 0;
       },
     });
   </script>
