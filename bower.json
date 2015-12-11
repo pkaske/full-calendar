@@ -21,7 +21,7 @@
     "moment-timezone": "~0.4.1",
     "moment-range": "~2.0.3",
     "iron-icon": "PolymerElements/iron-icon#^1.0.0",
-    "pop-over": "pkaske/pop-over#^1.0.0"
+    "pop-over": "pkaske/pop-over#~1.1.4"
   },
   "devDependencies": {
     "iron-component-page": "PolymerElements/iron-component-page#^1.0.0",

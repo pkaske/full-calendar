@@ -1,0 +1,126 @@
+<link rel="import" href="full-calendar-week-view-item-part.html">
+
+<dom-module id="full-calendar-week-view-item">
+  <script>
+    Polymer({
+      is: 'full-calendar-week-view-item',
+
+      properties: {
+        /**
+         * Holds the month view instance.
+         */
+        view: {
+          type: Object
+        },
+
+        event: {
+          type: Object
+        },
+
+        coord: {
+          type: Number,
+          value: 1
+        },
+
+        row: {
+          type: Number,
+          value: 0
+        },
+
+        /**
+         * Visial parts of the event item.
+         */
+        _parts: {
+          type: Array,
+          value: function() {
+            return [];
+          }
+        }
+      },
+
+      observers: [
+        '_eventChanged(event.*)'
+      ],
+
+      get startDay() {
+        return this.event.duration.start.date();
+      },
+
+      get startMonth() {
+        return this.event.duration.start.month();
+      },
+
+      get eventLength() {
+        return this.event.duration.len;
+      },
+
+      get startWeek() {
+        var firstDay = moment(this.event.duration.start).startOf('week');
+        var lastDay = moment(this.event.duration.start).endOf('week');
+        return moment.range(firstDay, lastDay);
+      },
+
+      /**
+       * Remove all parts from the calendar.
+       */
+      detached: function() {
+        var i = this._parts.length;
+        while (i) {
+          i--;
+          this._parts[i].parentNode.removeChild(this._parts[i]);
+        }
+      },
+
+      update: function() {
+        // Generate the visual item(s).
+        // If the events goes over multiple weeks we split it up into multiple visual items.
+
+        // Day element were the event starts.
+        var startDayEl = this.view.$$('[coord="' + this.coord + '"]');
+
+        // Starting item.
+        var startItem;
+
+        // Cache event length.
+        var evLen = this.eventLength;
+
+        // How many day's are available in the start week.
+        var avStartWeekDays = 7 - this.event.duration.start.weekday();
+
+        startItem = this._genItemPart(Math.min(evLen, avStartWeekDays));
+        startDayEl.addItemPart(startItem);
+
+        if (avStartWeekDays < evLen) {
+          var leftDays = evLen - avStartWeekDays;
+          var nextItem = this._genItemPart(Math.min(leftDays, 7));
+          startDayEl.addItemPart(nextItem);
+        }
+      },
+
+      _genItemPart: function(len) {
+        var itemPart = document.createElement('full-calendar-week-view-item-part');
+        itemPart.row = this.row;
+        itemPart.summary = this.event.summary;
+        itemPart.color = this.event.color;
+        itemPart.len = len;
+
+        this.listen(itemPart, 'mouseenter', '_forwardEvent');
+        this.listen(itemPart, 'mouseleave', '_forwardEvent');
+
+        this._parts.push(itemPart);
+
+        return itemPart;
+      },
+
+      _forwardEvent: function(e) {
+        for (var i = 0, li = this._parts.length; i < li; ++i) {
+          this._parts[i]['_' + e.type]();
+        }
+      },
+
+      _eventChanged: function(change) {
+        this.update();
+      },
+    });
+  </script>
+</dom-module>

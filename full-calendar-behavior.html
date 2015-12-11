@@ -38,18 +38,48 @@ Or see the LICENSE file that comes with this code.
         return filteredEvents;
       },
 
-      getEventsForWeek: function(week, events) {
+      getEventsForWeek: function(week, year, events) {
+        var startDate = moment(year+" "+week, "gggg w");
+        var weekRange = moment.range(moment(startDate).startOf('week'), moment(startDate).endOf('week'));
+
         var filteredEvents = [];
         var le = events.length;
         while (le) {
           le--;
           var ev = events[le];
-          if (ev.duration.overlaps(week.range)) {
+          if (ev.duration.overlaps(weekRange)) {
             filteredEvents.push(ev);
           }
         }
 
         return filteredEvents;
+      },
+
+      getDayList: function(week, year) {
+        var days = [];
+
+        moment.locale(moment.locale(), {
+          week : {
+            dow : this.firstWeekDay, // Set first day of the week.
+            doy : 4
+          }
+        });
+
+        var startDate = moment(year+" "+week, "gggg w");
+        var firstDay  = moment(startDate).startOf('week');
+        var endDay    = moment(startDate).endOf('week');
+
+        var weekRange = moment.range(firstDay, endDay);
+
+        weekRange.by('days', function(mD) {
+          var day = {
+            label: mD.date(),
+            moment: mD
+          };
+
+          days.push(day);
+        });
+        return days;
       },
 
       getWeekList: function(month, year) {

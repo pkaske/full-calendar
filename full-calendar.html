@@ -3,6 +3,7 @@
 <link rel="import" href="full-calendar-events.html">
 <link rel="import" href="full-calendar-imports.html">
 <link rel="import" href="month-view/full-calendar-month-view.html">
+<link rel="import" href="week-view/full-calendar-week-view.html">
 
 <!--
 @group GUI Elements
@@ -44,7 +45,7 @@
         <content select="full-calendar-month-view"></content>
       </div>
       <div class="week-view" hidden$="[[!_isEq(activeView, 'week')]]">
-        Week
+        <content select="full-calendar-week-view"></content>
       </div>
       <div class="day-view" hidden$="[[!_isEq(activeView, 'day')]]">
         Day
@@ -81,6 +82,8 @@
         switch (type) {
           case 'month':
             return this.$$('full-calendar-month-view');
+          case 'week':
+            return this.$$('full-calender-week-view');
         }
       },
 
