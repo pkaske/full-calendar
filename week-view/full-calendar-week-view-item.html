@@ -17,7 +17,7 @@
           type: Object
         },
 
-        coord: {
+        coords: {
           type: Number,
           value: 1
         },
@@ -76,7 +76,7 @@
         // If the events goes over multiple weeks we split it up into multiple visual items.
 
         // Day element were the event starts.
-        var startDayEl = this.view.$$('[coord="' + this.coord + '"]');
+        var startDayEl = this.view.$$('[coords="' + this.coords.x + ':' + this.coords.y + '"]');
 
         // Starting item.
         var startItem;
@@ -87,22 +87,23 @@
         // How many day's are available in the start week.
         var avStartWeekDays = 7 - this.event.duration.start.weekday();
 
-        startItem = this._genItemPart(Math.min(evLen, avStartWeekDays));
+        startItem = this._genItemPart(Math.min(evLen, avStartWeekDays), moment.duration(this.event.duration.end.diff(this.event.duration.start)).get("hours"));
         startDayEl.addItemPart(startItem);
 
         if (avStartWeekDays < evLen) {
           var leftDays = evLen - avStartWeekDays;
-          var nextItem = this._genItemPart(Math.min(leftDays, 7));
+          var nextItem = this._genItemPart(Math.min(leftDays, 7), moment.duration(this.event.duration.end.diff(this.event.duration.start)).get("hours"));
           startDayEl.addItemPart(nextItem);
         }
       },
 
-      _genItemPart: function(len) {
+      _genItemPart: function(len, height) {
         var itemPart = document.createElement('full-calendar-week-view-item-part');
         itemPart.row = this.row;
         itemPart.summary = this.event.summary;
         itemPart.color = this.event.color;
         itemPart.len = len;
+        itemPart.height = height;
 
         this.listen(itemPart, 'mouseenter', '_forwardEvent');
         this.listen(itemPart, 'mouseleave', '_forwardEvent');
@@ -120,7 +121,7 @@
 
       _eventChanged: function(change) {
         this.update();
-      },
+      }
     });
   </script>
 </dom-module>

@@ -16,8 +16,9 @@
       }
 
       #topLayer {
-        margin-top: 25px;
+        /*margin-top: 25px;*/
         @apply(--layout-fit);
+        @apply(--full-calendar-week-view-day-cell-bg);
       }
 
       .more {
@@ -71,7 +72,9 @@
       }
     </style>
 
-    <div class="bottom-layer">
+
+
+    <div class="bottom-layer" hidden$="[[dayInfoHidden]]">
       <span>[[label]]</span>
     </div>
     <div id="topLayer">
@@ -90,6 +93,14 @@
       is: 'full-calendar-week-view-day',
 
       properties: {
+
+        /**
+         * should hour infos be shown
+         */
+        dayInfoHidden: {
+          type: Boolean,
+          value: true
+        },
 
         /**
          * List of days to render
@@ -124,8 +135,9 @@
 
       addItemPart: function(itemPart) {
         if (itemPart.row < 4) {
-          itemPart.style.top = (itemPart.row * 20) + '%';
-          itemPart.style.width = (100 * itemPart.len) + '%';
+          itemPart.style.top    = (itemPart.row * 45) + '%';
+          itemPart.style.width  = (100 * itemPart.len) + '%';
+          itemPart.style.height = (100 * itemPart.height) + '%';
 
           Polymer.dom(this.$.topLayer).appendChild(itemPart);
         } else {
@@ -136,7 +148,7 @@
 
       _dateChanged: function() {
         this._hiddenEventsCount = 0;
-      },
+      }
     });
   </script>
 </dom-module>

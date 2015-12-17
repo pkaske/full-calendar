@@ -8,25 +8,40 @@
     <style>
       :host {
         display: block;
-      @apply(--layout-vertical);
-      @apply(--layout-flex);
+        @apply(--layout-vertical);
+        @apply(--layout-flex);
       }
 
       #calendarArea {
         position: relative;
         /*@apply(--layout-fit);*/
-      @apply(--layout-flex);
-      @apply(--layout-vertical);
+        @apply(--layout-flex);
+        @apply(--layout-vertical);
       }
 
-      .week-item {
+      .hour-item {
         display: block;
-      @apply(--layout-flex);
-      @apply(--layout-horizontal);
+        @apply(--layout-flex);
+        @apply(--layout-horizontal);
       }
 
-      .week-item > full-calendar-week-view-day {
-      @apply(--layout-flex);
+      .hour-info {
+        font-size: 10px;
+        color: #c4bfbf;
+        border: solid 1px #d5d5d5;
+        border-right-style: none;
+        border-top-style: none;
+        width: 30px;
+        @apply(--layout-vertical);
+        @apply(--layout-center-center);
+      }
+
+      .hour-item:first-child .hour-info{
+        border-top-style: solid;
+      }
+
+      .hour-item > full-calendar-week-view-day {
+        @apply(--layout-flex);
       }
 
       full-calendar-week-view-day {
@@ -38,7 +53,7 @@
        };
       }
 
-      .week-item:first-child full-calendar-week-view-day {
+      .hour-item:first-child full-calendar-week-view-day {
       --full-calendar-week-view-day-cell-bg: {
          border: solid 1px #d5d5d5;
          border-left-style: none;
@@ -46,7 +61,7 @@
        };
       }
 
-      .week-item full-calendar-week-view-day:first-of-type {
+      .hour-item full-calendar-week-view-day:first-of-type {
       --full-calendar-week-view-day-cell-bg: {
          border: solid 1px #d5d5d5;
          border-top-style: none;
@@ -54,7 +69,7 @@
        };
       }
 
-      .week-item:first-child full-calendar-week-view-day:first-of-type {
+      .hour-item:first-child full-calendar-week-view-day:first-of-type {
       --full-calendar-week-view-day-cell-bg: {
          border: solid 1px #d5d5d5;
          color: #c4bfbf;
@@ -66,10 +81,10 @@
       }
 
       .header {
-      @apply(--layout-horizontal);
-      @apply(--layout-center);
+        @apply(--layout-horizontal);
+        @apply(--layout-center);
 
-      @apply(--full-calendar-week-view-header);
+        @apply(--full-calendar-week-view-header);
       }
 
       .title {
@@ -78,11 +93,12 @@
 
       .controls {
         height: 50px;
-      @apply(--layout-horizontal);
-      @apply(--layout-center-center);
-      @apply(--layout-flex);
+        @apply(--layout-horizontal);
+        @apply(--layout-center-center);
+        @apply(--layout-flex);
       }
 
+      .controls .week,
       .controls .month,
       .controls .year {
         text-align: center;
@@ -93,11 +109,11 @@
         cursor: pointer;
         padding: 0 5px;
 
-      @apply(--full-calendar-icon);
+        @apply(--full-calendar-icon);
       }
 
       .controls iron-icon:hover {
-      @apply(--full-calendar-icon-hover);
+        @apply(--full-calendar-icon-hover);
       }
 
       .misc {
@@ -142,17 +158,23 @@
     </div>
 
     <div id="calendarArea">
-      <div class="week-item" week$="[[week]]">
-        <template is="dom-repeat" items=[[_dayList]] as="day" index-as="x" on-dom-change="_dayPainted">
-          <full-calendar-week-view-day
-                  class$="[[_calcClass(day)]]"
-                  coord$="[[_printCoord(x)]]"
-                  date$="[[_printDate(day)]]"
-                  label="[[day.label]]"
-                  view="[[_view]]">
-          </full-calendar-week-view-day>
-        </template>
-      </div>
+      <template is="dom-repeat" items=[[_hourList]] as="hour" index-as="y" on-dom-change="_paintEvents">
+        <div class="hour-item" hour$="[[hour]]">
+          <div class="hour-info">
+            <span>[[_getHourInfo(hour)]]</span>
+          </div>
+          <template is="dom-repeat" items=[[_dayList]] as="day" index-as="x">
+            <full-calendar-week-view-day
+                    class$="[[_calcClass(day)]]"
+                    coords$="[[_printCoords(x,y)]]"
+                    date$="[[_printDate(day, hour)]]"
+                    label="[[day.label]]"
+                    view="[[_view]]"
+                    day-info-hidden="[[_checkDayInfoHidden(hour)]]">
+            </full-calendar-week-view-day>
+          </template>
+        </div>
+      </template>
     </div>
   </template>
 
@@ -219,14 +241,6 @@
           value: {
             more: 'more'
           }
-        },
-
-        /**
-         * Little helper that lets us know when all days where painted by dom-repeat.
-         */
-        _daysPainted: {
-          type: Number,
-          value: 0
         }
       },
 
@@ -243,20 +257,7 @@
       },
 
       _dateChanged: function(week, month, year) {
-        this._fillList(week, year);
-      },
-
-      /**
-       * Counts `this._daysPainted` up till we know all days are ready.
-       * Then fill in the events.
-       */
-      _dayPainted: function() {
-        this._daysPainted++;
-        // If all 7 days are painted, fill in the events.
-        if (this._daysPainted === 1) {
-          this._daysPainted = 0;
-          this._paintEvents();
-        }
+        this._fillLists(week, year);
       },
 
       _nextWeek: function () {
@@ -354,16 +355,20 @@
         return moment.months()[month];
       },
 
-      _fillList: function(week, year) {
+      _fillLists: function(week, year) {
         this._dayList = this.getDayList(week, year);
+
+        var hourList = [];
+        for(var i = -1; i<24; i++) hourList.push(i);
+        this._hourList = hourList;
       },
 
-      _printCoord: function(x) {
-        return x;
+      _printCoords: function(x, y) {
+        return x + ':' + y;
       },
 
-      _printDate: function(day) {
-        return day.label + ':' + day.moment.get('month');
+      _printDate: function(day, hour) {
+        return day.label + ':' + day.moment.get('month') + ':' + hour;
       },
 
       _calcClass: function(day) {
@@ -390,10 +395,25 @@
         }
       },
 
+      _getHourInfo: function(hour) {
+        if(hour==-1) {
+          // nothing to do
+        } else if(hour < 10) {
+          return "0"+hour;
+        } else {
+          return hour;
+        }
+      },
+
+      _checkDayInfoHidden: function(hour) {
+        return hour != -1;
+      },
+
       /**
        * Generates a matrix for the calendar grid.
        * True stands for a free row.
        * [
+       *   week0: [
        * 	 	 day0: [ row0: true, row1: true, row2: true, row3: true ],
        * 	 	 day1: [ row0: true, row1: true, row2: true, row3: true ],
        * 	 	 day2: [ row0: true, row1: true, row2: true, row3: true ],
@@ -401,13 +421,19 @@
        * 	 	 day4: [ row0: true, row1: true, row2: true, row3: true ],
        * 	 	 day5: [ row0: true, row1: true, row2: true, row3: true ],
        * 	 	 day6: [ row0: true, row1: true, row2: true, row3: true ]
+       * 	 ],
+       * 	 ...
        * ]
        */
       _resetMatrix: function() {
         this._matrix = [];
-        for (var i = 0; i < this._dayList.length; i++) {
-          var rowMatrix = [];
-          this._matrix.push(rowMatrix);
+        for (var i = 0; i < this._hourList.length; i++) {
+          var hourMatrix = [];
+          for (var d = 0; d < this._dayList.length; d++) {
+            var rowMatrix = [];
+            hourMatrix.push(rowMatrix);
+          }
+          this._matrix.push(hourMatrix);
         }
       },
 
@@ -434,10 +460,10 @@
         for (var e = 0, le = events.length; e < le; ++e) {
           var ev = events[e];
 
-          // Translate coord
+          // Translate coords
           var overlappingRange = ev.duration.intersect(weekRange);
           if(overlappingRange != null) {
-            var coord = this._getGridCoordForDate(overlappingRange.start.date(), overlappingRange.start.month());
+            var coords = this._getGridCoordsForDate(overlappingRange.start.date(), overlappingRange.start.month(), ev.duration.start.hour());
           } else {
             continue; // no overlap found; should not happen
           }
@@ -448,17 +474,17 @@
           ev.duration.len = ev.duration.diff('days') + 1;
 
           // Get free row to place event in grid.
-          var row = this._getFreeRowForDate(coord, ev);
+          var row = this._getFreeRowForDate(coords, ev);
 
           // Set the event on the found row.
-          this._claimRowForDate(coord, row, ev);
+          this._claimRowForDate(coords, row, ev);
 
           // Create item for the event.
-          var eventItem = document.createElement('full-calendar-week-view-item');
-          eventItem.view = this;
-          eventItem.coord = coord;
-          eventItem.row = row;
-          eventItem.event = ev;
+          var eventItem    = document.createElement('full-calendar-week-view-item');
+          eventItem.view   = this;
+          eventItem.coords = coords;
+          eventItem.row    = row;
+          eventItem.event  = ev;
           this.visibleEvents.push(eventItem);
           this.$.calendarArea.appendChild(eventItem);
 
@@ -466,18 +492,20 @@
         }
       },
 
-      _getGridCoordForDate: function(day, month) {
-        var dayEl = this.$$('[date="' + day + ':' + month + '"]');
-        var coord = dayEl.getAttribute('coord');
-        return parseInt(coord, 10);
+      _getGridCoordsForDate: function(day, month, hour) {
+        var dayEl = this.$$('[date="' + day + ':' + month + ':' + hour + '"]');
+        var coords = dayEl.getAttribute('coords');
+        var parts = coords.split(':');
+        return {x: parseInt(parts[0], 10), y: parseInt(parts[1], 10)};
       },
 
-      _getFreeRowForDate: function(coord, ev) {
-        var day = coord;
+      _getFreeRowForDate: function(coords, ev) {
+        var hour = coords.y;
+        var day = coords.x;
         var rowSpot = -1;
 
         for (var l = 0; l < ev.duration.len; ++l) {
-          var rowMatrix = this._matrix[day];
+          var rowMatrix = this._matrix[hour][day];
           var row = 0;
           while (true) {
             if (!rowMatrix[row] && row >= rowSpot) {
@@ -486,7 +514,6 @@
             }
             row++;
           }
-
           day++;
         }
 
@@ -497,12 +524,12 @@
        * Claims spots in the matrix for a event.
        * With this system the calendar knows how to arrange event items so they don't overlap.
        */
-      _claimRowForDate: function(coord, row, ev) {
-        var day = coord;
+      _claimRowForDate: function(coords, row, ev) {
+        var hour = coords.y;
+        var day  = coords.x;
 
         for (var l = 0; l < ev.duration.len; ++l) {
-          this._matrix[day][row] = ev;
-
+          this._matrix[hour][day][row] = ev;
           day++;
         }
       }
