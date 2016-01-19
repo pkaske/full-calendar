@@ -22,7 +22,7 @@
           value: 1
         },
 
-        row: {
+        column: {
           type: Number,
           value: 0
         },
@@ -56,7 +56,7 @@
 
       get startWeek() {
         var firstDay = moment(this.event.duration.start).startOf('week');
-        var lastDay = moment(this.event.duration.start).endOf('week');
+        var lastDay  = moment(this.event.duration.start).endOf('week');
         return moment.range(firstDay, lastDay);
       },
 
@@ -76,7 +76,7 @@
         // If the events goes over multiple weeks we split it up into multiple visual items.
 
         // Day element were the event starts.
-        var startDayEl = this.view.$$('[coords="' + this.coords.x + ':' + this.coords.y + '"]');
+        var startHourEl = this.view.$$('[coords="' + this.coords.x + ':' + this.coords.y + '"]');
 
         // Starting item.
         var startItem;
@@ -85,25 +85,37 @@
         var evLen = this.eventLength;
 
         // How many day's are available in the start week.
-        var avStartWeekDays = 7 - this.event.duration.start.weekday();
+        var avStartHours = 1440 - (this.event.duration.start.hours() * 60 + this.event.duration.start.minutes());
 
-        startItem = this._genItemPart(Math.min(evLen, avStartWeekDays), moment.duration(this.event.duration.end.diff(this.event.duration.start)).get("hours"));
-        startDayEl.addItemPart(startItem);
+        startItem = this._genItemPart(Math.min(evLen, avStartHours), this.event.duration.start.minutes());
+        startHourEl.addItemPart(startItem);
 
-        if (avStartWeekDays < evLen) {
-          var leftDays = evLen - avStartWeekDays;
-          var nextItem = this._genItemPart(Math.min(leftDays, 7), moment.duration(this.event.duration.end.diff(this.event.duration.start)).get("hours"));
-          startDayEl.addItemPart(nextItem);
+        if (avStartHours < evLen) {
+          var leftHours = evLen - avStartHours;
+          var i = 1;
+
+          while (i) {
+            var nextHourEl = this.view.$$('[coords="' + (this.coords.x + i) + ':1"]');
+
+            if (!nextHourEl) { break; }
+
+            var nextItem = this._genItemPart(Math.min(leftHours, 1440), 0);
+            nextHourEl.addItemPart(nextItem);
+            leftHours -= 1440;
+            i++;
+
+            if (leftHours <= 0) { break; }
+          }
         }
       },
 
-      _genItemPart: function(len, height) {
-        var itemPart = document.createElement('full-calendar-week-view-item-part');
-        itemPart.row = this.row;
+      _genItemPart: function(height, offset) {
+        var itemPart     = document.createElement('full-calendar-week-view-item-part');
+        itemPart.column  = this.column;
         itemPart.summary = this.event.summary;
-        itemPart.color = this.event.color;
-        itemPart.len = len;
-        itemPart.height = height;
+        itemPart.color   = this.event.color;
+        itemPart.height  = height;
+        itemPart.offset  = offset;
 
         this.listen(itemPart, 'mouseenter', '_forwardEvent');
         this.listen(itemPart, 'mouseleave', '_forwardEvent');

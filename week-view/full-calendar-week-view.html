@@ -14,7 +14,6 @@
 
       #calendarArea {
         position: relative;
-        /*@apply(--layout-fit);*/
         @apply(--layout-flex);
         @apply(--layout-vertical);
       }
@@ -274,7 +273,7 @@
         }
 
         // Events are automatically filled in as soon as the calendar grid was painted.
-        // See this._dayPainted;
+        // See this._paintEvents;
       },
 
       _prevWeek: function () {
@@ -293,7 +292,7 @@
         }
 
         // Events are automatically filled in as soon as the calendar grid was painted.
-        // See this._dayPainted;
+        // See this._paintEvents;
       },
 
       _nextMonth: function() {
@@ -310,7 +309,7 @@
         }
 
         // Events are automatically filled in as soon as the calendar grid was painted.
-        // See this._dayPainted;
+        // See this._paintEvents;
       },
 
       _prevMonth: function() {
@@ -326,7 +325,7 @@
         this.week = moment([this.year, this.month]).week();
 
         // Events are automatically filled in as soon as the calendar grid was painted.
-        // See this._dayPainted;
+        // See this._paintEvents;
       },
 
       _nextYear: function() {
@@ -337,7 +336,7 @@
         this._checkYearValidDate();
 
         // Events are automatically filled in as soon as the calendar grid was painted.
-        // See this._dayPainted;
+        // See this._paintEvents;
       },
 
       _prevYear: function() {
@@ -348,7 +347,7 @@
         this._checkYearValidDate();
 
         // Events are automatically filled in as soon as the calendar grid was painted.
-        // See this._dayPainted;
+        // See this._paintEvents;
       },
 
       _printMonth: function(month) {
@@ -359,7 +358,7 @@
         this._dayList = this.getDayList(week, year);
 
         var hourList = [];
-        for(var i = -1; i<24; i++) hourList.push(i);
+        for(var i = -1; i<24; i++) hourList.push(i); // -1 for an overall hour to paint the day label
         this._hourList = hourList;
       },
 
@@ -430,8 +429,8 @@
         for (var i = 0; i < this._hourList.length; i++) {
           var hourMatrix = [];
           for (var d = 0; d < this._dayList.length; d++) {
-            var rowMatrix = [];
-            hourMatrix.push(rowMatrix);
+            var columnMatrix = [];
+            hourMatrix.push(columnMatrix);
           }
           this._matrix.push(hourMatrix);
         }
@@ -463,7 +462,7 @@
           // Translate coords
           var overlappingRange = ev.duration.intersect(weekRange);
           if(overlappingRange != null) {
-            var coords = this._getGridCoordsForDate(overlappingRange.start.date(), overlappingRange.start.month(), ev.duration.start.hour());
+            var coords = this._getGridCoordsForDate(overlappingRange.start.date(), overlappingRange.start.month(), overlappingRange.start.hour());
           } else {
             continue; // no overlap found; should not happen
           }
@@ -471,19 +470,19 @@
           var duration    = ev.duration; // store real event duration
 
           ev.duration     = overlappingRange;
-          ev.duration.len = ev.duration.diff('days') + 1;
+          ev.duration.len = ev.duration.diff('minutes') + 1;
 
           // Get free row to place event in grid.
-          var row = this._getFreeRowForDate(coords, ev);
+          var column = this._getFreeColumnForDate(coords, ev);
 
           // Set the event on the found row.
-          this._claimRowForDate(coords, row, ev);
+          this._claimColumnForDate(coords, column, ev);
 
           // Create item for the event.
           var eventItem    = document.createElement('full-calendar-week-view-item');
           eventItem.view   = this;
           eventItem.coords = coords;
-          eventItem.row    = row;
+          eventItem.column = column;
           eventItem.event  = ev;
           this.visibleEvents.push(eventItem);
           this.$.calendarArea.appendChild(eventItem);
@@ -499,38 +498,46 @@
         return {x: parseInt(parts[0], 10), y: parseInt(parts[1], 10)};
       },
 
-      _getFreeRowForDate: function(coords, ev) {
-        var hour = coords.y;
-        var day = coords.x;
-        var rowSpot = -1;
+      _getFreeColumnForDate: function(coords, ev) {
+        var hour       = coords.y;
+        var day        = coords.x;
+        var columnSpot = -1;
 
-        for (var l = 0; l < ev.duration.len; ++l) {
-          var rowMatrix = this._matrix[hour][day];
-          var row = 0;
+        for (var l = 0; l < ev.duration.len / 60; ++l) {
+          var columnMatrix = this._matrix[hour][day];
+          var column = 0;
           while (true) {
-            if (!rowMatrix[row] && row >= rowSpot) {
-              rowSpot = row;
+            if (!columnMatrix[column] && column >= columnSpot) {
+              columnSpot = column;
               break;
             }
-            row++;
+            column++;
           }
-          day++;
+
+          hour++;
+          if(hour==25) { // 25 because of the overall hour
+            day++;
+            hour=1;
+          }
         }
 
-        return rowSpot;
+        return columnSpot;
       },
 
       /**
        * Claims spots in the matrix for a event.
        * With this system the calendar knows how to arrange event items so they don't overlap.
        */
-      _claimRowForDate: function(coords, row, ev) {
+      _claimColumnForDate: function(coords, column, ev) {
         var hour = coords.y;
         var day  = coords.x;
-
-        for (var l = 0; l < ev.duration.len; ++l) {
-          this._matrix[hour][day][row] = ev;
-          day++;
+        for (var l = 0; l < ev.duration.len / 60; ++l) {
+          this._matrix[hour][day][column] = ev;
+          hour++;
+          if(hour==25) { // 25 because of the overall hour
+            day++;
+            hour=1;
+          }
         }
       }
     });

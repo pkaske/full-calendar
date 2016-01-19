@@ -16,9 +16,7 @@
       }
 
       #topLayer {
-        /*margin-top: 25px;*/
         @apply(--layout-fit);
-        @apply(--full-calendar-week-view-day-cell-bg);
       }
 
       .more {
@@ -74,8 +72,8 @@
 
 
 
-    <div class="bottom-layer" hidden$="[[dayInfoHidden]]">
-      <span>[[label]]</span>
+    <div class="bottom-layer">
+      <span hidden$="[[dayInfoHidden]]">[[label]]</span>
     </div>
     <div id="topLayer">
       <div class="more" hidden$="[[!_hiddenEventsCount]]">
@@ -134,10 +132,10 @@
       },
 
       addItemPart: function(itemPart) {
-        if (itemPart.row < 4) {
-          itemPart.style.top    = (itemPart.row * 45) + '%';
-          itemPart.style.width  = (100 * itemPart.len) + '%';
-          itemPart.style.height = (100 * itemPart.height) + '%';
+        if (itemPart.column < 5) {
+          itemPart.style.left   = (itemPart.column * 20) + '%';
+          itemPart.style.height = (100 * itemPart.height / 60) + '%';
+          itemPart.style.top    = (100 * itemPart.offset / 60) + '%';
 
           Polymer.dom(this.$.topLayer).appendChild(itemPart);
         } else {

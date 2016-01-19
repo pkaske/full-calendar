@@ -9,8 +9,8 @@
         display: block;
         color: #000000;
         font-size: 10px;
-        padding: 2px 0px;
-        height: 45%;
+        padding: 0 2px;
+        width: 20%;
         box-sizing: border-box;
       }
 
@@ -22,11 +22,10 @@
         cursor: pointer;
         transition: background-color 0.2s, color 0.2s;
         @apply(--layout-horizontal);
-        @apply(--layout-center);
+        @apply(--layout-top);
       }
 
       #wrap > div {
-        white-space: nowrap;
         text-overflow: ellipsis;
         overflow: hidden;
       }
@@ -52,17 +51,17 @@
           observer: '_colorChanged'
         },
 
-        len: {
-          type: Number,
-          value: 1
-        },
-
         height: {
           type: Number,
           value: 1
         },
 
-        row: {
+        offset: {
+          type: Number,
+          value: 0
+        },
+
+        column: {
           type: Number,
           value: 0
         }
